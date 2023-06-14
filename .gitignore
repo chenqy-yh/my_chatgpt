@@ -42,3 +42,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+#OpenAI_config
+/config/env.dart
+
+
+#config
+.env
+
+
+#auto generated
+/lib/**/*.freezed.Dart
+/lib/**/*.g.dart

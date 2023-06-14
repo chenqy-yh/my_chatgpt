@@ -1,91 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:my_chatgpt/models/message.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:my_chatgpt/states/user_touch_screen.dart';
+import 'package:my_chatgpt/widgets/chat_message_list.dart';
+import 'package:my_chatgpt/widgets/user_input_widget.dart';
 
-class ChatScreen extends StatelessWidget {
-  final List<Message> messages = [
-    Message(content: 'Hello', isUser: true, timestamp: DateTime.now()),
-    Message(content: 'How are you?', isUser: false, timestamp: DateTime.now()),
-    Message(content: 'I am fine', isUser: true, timestamp: DateTime.now()),
-    Message(
-        content: 'How about you?', isUser: false, timestamp: DateTime.now()),
-  ];
-
-  final _textController = TextEditingController();
-
-  ChatScreen({super.key});
+class ChatScreen extends HookConsumerWidget {
+  const ChatScreen({super.key});
 
   get itemCount => null;
 
-  _sendMessage(String content) {
-    final message =
-        Message(content: content, isUser: true, timestamp: DateTime.now());
-    messages.add(message);
-    _textController.clear();
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chat'),
       ),
-      body: Center(
-          child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.separated(
-                itemCount: messages.length, //message num
-                itemBuilder: (context, index) {
-                  return MessageItem(
-                    message: messages[index],
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return const Divider(
-                    height: 16,
-                  );
-                },
+      body: Listener(
+        onPointerMove: (event) {
+          //滑动距离大于100 设置为false
+          if (event.delta.dy.abs() > 1) {
+            ref
+                .read(userTouchScreenProvider.notifier)
+                .setIsUserTouchScreen(isUserTouchScreen: true);
+          }
+        },
+        child: const Center(
+            child: Padding(
+          padding: EdgeInsets.all(8),
+          child: Column(
+            children: [
+              Expanded(
+                // 聊天消息列表
+                child: ChatMessageList(),
               ),
-            ),
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(
-                hintText: 'Type a message',
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      if (_textController.text.isNotEmpty) {
-                        _sendMessage(_textController.text);
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.send,
-                    )),
-              ),
-            ),
-          ],
-        ),
-      )),
-    );
-  }
-}
-
-class MessageItem extends StatelessWidget {
-  final Message message;
-
-  const MessageItem({super.key, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        CircleAvatar(
-          child: Text(message.isUser ? 'A' : 'GPT'),
-        ),
-        const SizedBox(width: 8),
-        Text(message.content),
-      ],
+              //用户输入框
+              UserInputWidget(),
+            ],
+          ),
+        )),
+      ),
     );
   }
 }
